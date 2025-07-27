@@ -18,5 +18,5 @@ func Open(path string) (TorrentFile, error) {
 		return TorrentFile{}, err
 	}
 
-	return content.ToTorrentFile()
+	return torrentFileFromBencode(content)
 }

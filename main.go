@@ -20,4 +20,5 @@ func main() {
 	fmt.Println(content.Comment)
 	t := time.Unix(int64(content.CreationDate), 0)
 	fmt.Println(t)
+	fmt.Println(content.InfoHash)
 }
