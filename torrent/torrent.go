@@ -1,8 +1,10 @@
 package torrent
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/beeploop/foorrent/peer"
 	"github.com/jackpal/bencode-go"
 )
 
@@ -19,4 +21,25 @@ func Open(path string) (TorrentFile, error) {
 	}
 
 	return torrentFileFromBencode(content)
+}
+
+func Download(torrent TorrentFile) error {
+	peerID, err := peer.CreatePeerID()
+	if err != nil {
+		return err
+	}
+
+	trackerURL, err := buildTrackerURL(peerID, torrent)
+	if err != nil {
+		return err
+	}
+
+	response, err := contactTracker(trackerURL)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(response.Interval)
+	fmt.Println(response.Peers)
+	return nil
 }

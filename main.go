@@ -21,4 +21,8 @@ func main() {
 	t := time.Unix(int64(content.CreationDate), 0)
 	fmt.Println(t)
 	fmt.Println(content.InfoHash)
+
+	if err := torrent.Download(content); err != nil {
+		panic(err.Error())
+	}
 }

@@ -32,12 +32,12 @@ func torrentFileFromBencode(data bencodeContent) (TorrentFile, error) {
 		Pieces:      data.Info.Pieces,
 	}
 
-	infoHash, err := info.hash()
+	infoHash, err := createHashInfo(data.Info)
 	if err != nil {
 		return TorrentFile{}, err
 	}
 
-	pieceHashes, err := info.splitPieces()
+	pieceHashes, err := splitPiecesString(info.Pieces)
 	if err != nil {
 		return TorrentFile{}, err
 	}
@@ -54,9 +54,9 @@ func torrentFileFromBencode(data bencodeContent) (TorrentFile, error) {
 	return t, nil
 }
 
-func (i *TorrentFileInfo) hash() ([20]byte, error) {
+func createHashInfo(info bencodeInfo) ([20]byte, error) {
 	var buf bytes.Buffer
-	if err := bencode.Marshal(&buf, *i); err != nil {
+	if err := bencode.Marshal(&buf, info); err != nil {
 		return [20]byte{}, err
 	}
 
@@ -64,8 +64,8 @@ func (i *TorrentFileInfo) hash() ([20]byte, error) {
 	return hash, nil
 }
 
-func (i *TorrentFileInfo) splitPieces() ([][20]byte, error) {
-	data := []byte(i.Pieces)
+func splitPiecesString(pieces string) ([][20]byte, error) {
+	data := []byte(pieces)
 	hashSize := 20 // 20 byte for each hash | length of Sha-1
 
 	if len(data)%hashSize != 0 {
