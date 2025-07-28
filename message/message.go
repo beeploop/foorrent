@@ -45,7 +45,7 @@ func Read(r io.Reader) (*Message, error) {
 	}
 	length := binary.BigEndian.Uint32(lengthBuf)
 
-	// length of 0 means keep-alive
+	// Length of 0 means keep-alive
 	if length == 0 {
 		return nil, nil
 	}

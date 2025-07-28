@@ -47,9 +47,10 @@ func Download(torrent TorrentFile, outputPath string) error {
 	}
 
 	peer2peer := &p2p.PeerToPeer{
-		Peers:    peers,
-		PeerID:   peerID,
-		InfoHash: torrent.InfoHash,
+		Peers:       peers,
+		PeerID:      peerID,
+		InfoHash:    torrent.InfoHash,
+		PieceHashes: torrent.PieceHashes,
 	}
 	if err := peer2peer.InitiateDownloadProcess(); err != nil {
 		return err

@@ -10,7 +10,7 @@ import (
 )
 
 func performHandshake(conn net.Conn, peerID, infoHash [20]byte) (*handshake.HandShake, error) {
-	conn.SetDeadline(time.Now().Add(5 * time.Second))
+	conn.SetDeadline(time.Now().Add(client_timeout))
 	defer conn.SetDeadline(time.Time{})
 
 	handshakeRequest := handshake.New(infoHash, peerID)
