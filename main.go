@@ -10,6 +10,7 @@ import (
 
 func main() {
 	inputFile := os.Args[1]
+	outputPath := os.Args[2]
 
 	content, err := torrent.Open(inputFile)
 	if err != nil {
@@ -22,7 +23,7 @@ func main() {
 	fmt.Println(t)
 	fmt.Println(content.InfoHash)
 
-	if err := torrent.Download(content); err != nil {
+	if err := torrent.Download(content, outputPath); err != nil {
 		panic(err.Error())
 	}
 }

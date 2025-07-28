@@ -1,9 +1,9 @@
 package torrent
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/beeploop/foorrent/p2p"
 	"github.com/beeploop/foorrent/peer"
 	"github.com/jackpal/bencode-go"
 )
@@ -23,7 +23,7 @@ func Open(path string) (TorrentFile, error) {
 	return torrentFileFromBencode(content)
 }
 
-func Download(torrent TorrentFile) error {
+func Download(torrent TorrentFile, outputPath string) error {
 	peerID, err := peer.CreatePeerID()
 	if err != nil {
 		return err
@@ -39,7 +39,21 @@ func Download(torrent TorrentFile) error {
 		return err
 	}
 
-	fmt.Println(response.Interval)
-	fmt.Println(response.Peers)
+	// TODO: Handle re-contacting the tracker based on the Interval from response
+
+	peers, err := peer.PeersFromBytes([]byte(response.Peers))
+	if err != nil {
+		return err
+	}
+
+	peer2peer := &p2p.PeerToPeer{
+		Peers:    peers,
+		PeerID:   peerID,
+		InfoHash: torrent.InfoHash,
+	}
+	if err := peer2peer.InitiateDownloadProcess(); err != nil {
+		return err
+	}
+
 	return nil
 }
