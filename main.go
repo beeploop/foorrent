@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
-	"time"
 
 	"github.com/beeploop/foorrent/torrent"
 )
@@ -14,16 +13,12 @@ func main() {
 
 	content, err := torrent.Open(inputFile)
 	if err != nil {
-		panic(err.Error())
+		log.Fatalf("Error opening torrent file: %s\n", err.Error())
 	}
-
-	fmt.Println(content.Announce)
-	fmt.Println(content.Comment)
-	t := time.Unix(int64(content.CreationDate), 0)
-	fmt.Println(t)
-	fmt.Println(content.InfoHash)
 
 	if err := torrent.Download(content, outputPath); err != nil {
-		panic(err.Error())
+		log.Fatalf("Error downloading torrent file: %s\n", err.Error())
 	}
+
+	log.Println("Download complete")
 }

@@ -38,3 +38,28 @@ func New(peer peer.Peer, peerID, infoHash [20]byte) (*Client, error) {
 
 	return client, nil
 }
+
+func (c *Client) SendRequest(index, begin, length int) error {
+	// TODO: Handle send request message
+	return nil
+}
+
+func (c *Client) SendInterested() error {
+	// TODO: Handle send interested message
+	return nil
+}
+
+func (c *Client) SendUninterested() error {
+	// TODO: Handle send uninterested message
+	return nil
+}
+
+func (c *Client) SendUnchoke() error {
+	// TODO: Handle send unchoke message
+	return nil
+}
+
+func (c *Client) SendHave(index int) error {
+	// TODO: Handle send have message
+	return nil
+}
