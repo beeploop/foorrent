@@ -1,9 +1,10 @@
 package torrent
 
 import (
+	"log"
 	"os"
 
-	"github.com/beeploop/foorrent/p2p"
+	"github.com/beeploop/foorrent/download"
 	"github.com/beeploop/foorrent/peer"
 	"github.com/jackpal/bencode-go"
 )
@@ -45,17 +46,18 @@ func Download(torrent TorrentFile, outputPath string) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("NUMBER OF SEEDERS: %d\n", len(peers))
 
-	peer2peer := &p2p.PeerToPeer{
-		Peers:       peers,
-		PeerID:      peerID,
-		InfoHash:    torrent.InfoHash,
+	mgr := &download.DownloadManager{
 		PieceHashes: torrent.PieceHashes,
 		PieceLength: torrent.Info.PieceLength,
-		Length:      torrent.Info.Length,
-		Name:        torrent.Info.Name,
+		TotalPieces: len(torrent.PieceHashes),
+		TotalLength: torrent.Info.Length,
+		InfoHash:    torrent.InfoHash,
+		PeerID:      peerID,
+		Peers:       peers,
 	}
-	if err := peer2peer.InitiateDownloadProcess(); err != nil {
+	if err := mgr.Start(); err != nil {
 		return err
 	}
 
