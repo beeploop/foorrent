@@ -7,7 +7,7 @@ import (
 )
 
 func (dm *DownloadManager) peerResponder(c *client.Client) {
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Minute * 2)
 	for {
 		select {
 		case <-ticker.C:

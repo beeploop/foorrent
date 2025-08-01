@@ -44,7 +44,7 @@ func New(peer peer.Peer, peerID, infoHash [20]byte) (*Client, error) {
 
 func (c *Client) Close() {
 	c.Conn.Close()
-	log.Printf("connection close, [peer %s]\n", c.Peer.String())
+	log.Printf("[ Conn Closed ] [ Peer: %s ]\n", c.Peer.String())
 }
 
 func (c *Client) SendKeepAlive() error {

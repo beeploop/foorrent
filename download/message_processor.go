@@ -11,7 +11,7 @@ func (dm *DownloadManager) handleInboundMessages(c *client.Client, session *peer
 	for {
 		msg, err := message.Read(c.Conn)
 		if err != nil {
-			log.Printf("message error: %s, peer: %s\n", err.Error(), c.Peer.String())
+			log.Printf("[ Msg Err: %s ] [ Peer: %s ]\n", err.Error(), c.Peer.String())
 			dm.mu.Lock()
 			delete(dm.activePeers, c.Peer.String())
 			dm.mu.Unlock()

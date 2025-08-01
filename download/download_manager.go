@@ -3,6 +3,7 @@ package download
 import (
 	"fmt"
 	"log"
+	"runtime"
 	"sync"
 	"time"
 
@@ -12,13 +13,14 @@ import (
 )
 
 type DownloadManager struct {
-	mu                  sync.Mutex
-	downloaded          int
-	inProgressDownloads map[int]*inProgressPiece
-	pieceQueue          chan *piece
-	downloadChan        chan *block
-	completedPieceChan  chan *completedPiece
-	activePeers         map[string]peer.Peer
+	mu                   sync.Mutex
+	downloaded           int
+	inProgressDownloads  map[int]*inProgressPiece
+	pieceQueue           chan *piece
+	downloadChan         chan *block
+	downloadCompleteChan chan struct{}
+	completedPieceChan   chan *completedPiece
+	activePeers          map[string]peer.Peer
 
 	PieceHashes [][20]byte
 	PieceLength int
@@ -60,9 +62,11 @@ func (dm *DownloadManager) Start() error {
 	}
 
 	dm.inProgressDownloads = make(map[int]*inProgressPiece)
+	dm.activePeers = make(map[string]peer.Peer)
+
 	dm.downloadChan = make(chan *block)
 	dm.completedPieceChan = make(chan *completedPiece)
-	dm.activePeers = make(map[string]peer.Peer)
+	dm.downloadCompleteChan = make(chan struct{})
 
 	for _, peer := range dm.Peers {
 		go func() {
@@ -93,14 +97,22 @@ func (dm *DownloadManager) Start() error {
 	for {
 		select {
 		case <-ticker.C:
+			goroutines := runtime.NumGoroutine() - 1
 			percent := dm.downloadPercent()
-			log.Printf("[ %0.2f%% Downloaded ] [ Active Peers: %d ]\n", percent, len(dm.activePeers))
+			log.Printf("[ %0.2f%% Downloaded ] [ Active Peers: %d ] [ Goroutines: %d ]\n", percent, len(dm.activePeers), goroutines)
+
 		case piece := <-dm.completedPieceChan:
+			dm.mu.Lock()
+			downloaded := dm.downloaded
+			totalLength := dm.TotalLength
+			dm.mu.Unlock()
+
+			if downloaded == totalLength {
+				dm.downloadCompleteChan <- struct{}{}
+			}
+
 			// TODO: Save the completed piece
 			_ = piece
-
-			percent := dm.downloadPercent()
-			log.Printf("[ %0.2f%% Downloaded ] [ Active Peers: %d ]\n", percent, len(dm.activePeers))
 		}
 	}
 }
