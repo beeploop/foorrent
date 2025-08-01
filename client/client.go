@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/beeploop/foorrent/message"
-	"github.com/beeploop/foorrent/peer"
+	peers "github.com/beeploop/foorrent/peer"
 )
 
 const (
@@ -16,12 +16,12 @@ const (
 
 type Client struct {
 	Conn     net.Conn
-	Peer     peer.Peer
+	Peer     peers.Peer
 	InfoHash [20]byte
 	PeerID   [20]byte
 }
 
-func New(peer peer.Peer, peerID, infoHash [20]byte) (*Client, error) {
+func New(peer peers.Peer, peerID, infoHash [20]byte) (*Client, error) {
 	conn, err := net.DialTimeout("tcp", peer.String(), client_timeout)
 	if err != nil {
 		return nil, err
