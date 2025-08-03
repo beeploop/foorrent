@@ -82,14 +82,14 @@ func (dm *DownloadManager) Start() error {
 	dm.downloadCompleteChan = make(chan struct{})
 
 	for _, peer := range dm.Peers {
-		go func(p peers.Peer) {
-			c, err := client.New(p, dm.PeerID, dm.InfoHash)
+		go func() {
+			c, err := client.New(peer, dm.PeerID, dm.InfoHash)
 			if err != nil {
 				log.Println("Client for peer failed: ", err.Error())
 				return
 			}
 			dm.mu.Lock()
-			dm.activePeers[p.String()] = p
+			dm.activePeers[peer.String()] = peer
 			dm.mu.Unlock()
 
 			c.SendInterested()
@@ -101,7 +101,7 @@ func (dm *DownloadManager) Start() error {
 			go dm.handleInboundMessages(c, session)
 			go dm.requestPieces(c, session)
 			go dm.peerResponder(c)
-		}(peer)
+		}()
 	}
 
 	go dm.handleReceivedBlocks()
