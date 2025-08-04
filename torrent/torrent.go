@@ -1,6 +1,7 @@
 package torrent
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -27,6 +28,11 @@ func Open(path string) (TorrentFile, error) {
 }
 
 func Download(torrent TorrentFile, outputPath string) error {
+	if len(torrent.Info.Files) > 0 {
+		err := fmt.Errorf("Does not yet support multi-file torrent")
+		return err
+	}
+
 	savepath, err := filepath.Abs(outputPath)
 	if err != nil {
 		return err

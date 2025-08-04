@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"fmt"
+	"slices"
 
+	"github.com/beeploop/foorrent/utils"
 	"github.com/jackpal/bencode-go"
 )
 
@@ -22,14 +24,31 @@ type TorrentFileInfo struct {
 	Name        string // Suggested filename
 	PieceLength int    // Number of bytes per piece
 	Pieces      string
+	Files       []TorrentFileFiles // Files in a multi-file torrent
+}
+
+type TorrentFileFiles struct {
+	Length int
+	Path   []string
 }
 
 func torrentFileFromBencode(data bencodeContent) (TorrentFile, error) {
+	files := slices.AppendSeq(
+		make([]TorrentFileFiles, 0),
+		utils.Map(data.Info.Files, func(file bencodeFiles) TorrentFileFiles {
+			return TorrentFileFiles{
+				Length: file.Length,
+				Path:   file.Path,
+			}
+		}),
+	)
+
 	info := TorrentFileInfo{
 		Length:      data.Info.Length,
 		Name:        data.Info.Name,
 		PieceLength: data.Info.PieceLength,
 		Pieces:      data.Info.Pieces,
+		Files:       files,
 	}
 
 	infoHash, err := createHashInfo(data.Info)
