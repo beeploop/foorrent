@@ -38,9 +38,6 @@ var infoCmd = &cobra.Command{
 }
 
 func init() {
-	infoCmd.Flags().String("file", "", "torrent file")
-	infoCmd.MarkFlagRequired("file")
-
 	infoCmd.Flags().Bool("with_pieces", false, "include the pieces in the printed data")
 
 	rootCmd.AddCommand(infoCmd)

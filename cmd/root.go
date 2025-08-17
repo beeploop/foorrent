@@ -20,5 +20,6 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().String("file", "", "input torrent file")
+	rootCmd.MarkPersistentFlagRequired("file")
 }

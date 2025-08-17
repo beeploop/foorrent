@@ -1,0 +1,93 @@
+package tracker
+
+import (
+	"io"
+	"net/http"
+	"net/url"
+	"strconv"
+	"time"
+
+	"github.com/jackpal/bencode-go"
+)
+
+const DEFAULT_PORT uint16 = 6881
+
+type Result struct {
+	Interval int
+	Peers    []Peer
+}
+
+type TrackerInput struct {
+	Announce   string
+	InfoHash   [20]byte
+	PeerID     [20]byte
+	Port       uint16
+	Left       int
+	Downloaded int
+	Uploaded   int
+}
+
+type response struct {
+	Interval int    `bencode:"interval"`
+	Peers    string `bencode:"peers"`
+}
+
+func Request(input TrackerInput) (Result, error) {
+	uri, err := constructURL(input)
+	if err != nil {
+		return Result{}, err
+	}
+
+	resp, err := contactTracker(uri)
+	if err != nil {
+		return Result{}, err
+	}
+
+	var content response
+	if err := bencode.Unmarshal(resp, &content); err != nil {
+		return Result{}, err
+	}
+
+	peers, err := parsePeersList([]byte(content.Peers))
+	if err != nil {
+		return Result{}, err
+	}
+
+	return Result{
+		Interval: content.Interval,
+		Peers:    peers,
+	}, nil
+}
+
+func contactTracker(url string) (io.Reader, error) {
+	client := http.Client{
+		Timeout: time.Second * 30,
+	}
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Body, nil
+}
+
+func constructURL(input TrackerInput) (string, error) {
+	baseURL, err := url.Parse(input.Announce)
+	if err != nil {
+		return "", err
+	}
+
+	params := url.Values{}
+	params.Add("info_hash", string(input.InfoHash[:]))
+	params.Add("peer_id", string(input.PeerID[:]))
+	params.Add("port", strconv.Itoa(int(DEFAULT_PORT)))
+	params.Add("uploaded", strconv.Itoa(input.Uploaded))
+	params.Add("downloaded", strconv.Itoa(input.Downloaded))
+	params.Add("compact", "1")
+	params.Add("left", strconv.Itoa(input.Left))
+
+	baseURL.RawQuery = params.Encode()
+
+	return baseURL.String(), nil
+}
