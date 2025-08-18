@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/beeploop/foorrent/internal/metadata"
-	"github.com/beeploop/foorrent/tracker"
+	"github.com/beeploop/foorrent/internal/tracker"
 	"github.com/spf13/cobra"
 )
 

@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/beeploop/foorrent/handshake"
+	"github.com/beeploop/foorrent/internal/handshake"
 )
 
 func performHandshake(conn net.Conn, peerID, infoHash [20]byte) (*handshake.HandShake, error) {

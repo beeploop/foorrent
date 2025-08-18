@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/beeploop/foorrent/client"
-	"github.com/beeploop/foorrent/message"
+	"github.com/beeploop/foorrent/internal/message"
 )
 
 func (dm *DownloadManager) handleInboundMessages(c *client.Client, session *peerSession) {

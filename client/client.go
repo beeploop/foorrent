@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/beeploop/foorrent/message"
+	"github.com/beeploop/foorrent/internal/message"
 	peers "github.com/beeploop/foorrent/peer"
 )
 

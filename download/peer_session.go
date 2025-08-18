@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"sync"
 
-	"github.com/beeploop/foorrent/bitfield"
+	"github.com/beeploop/foorrent/internal/bitfield"
 )
 
 type peerSession struct {
