@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/beeploop/foorrent/bitfield"
 	"github.com/beeploop/foorrent/client"
+	"github.com/beeploop/foorrent/internal/bitfield"
 	"github.com/beeploop/foorrent/peer"
 	"github.com/beeploop/foorrent/utils"
 )

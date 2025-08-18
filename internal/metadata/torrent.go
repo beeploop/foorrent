@@ -84,3 +84,15 @@ func (t *Torrent) FileMap() []FileEntry {
 
 	return list
 }
+
+func (t *Torrent) TotalSize() int {
+	if t.IsSingleFileMode() {
+		return t.Info.Length
+	}
+
+	total := 0
+	for _, file := range t.Info.Files {
+		total += file.Length
+	}
+	return total
+}
