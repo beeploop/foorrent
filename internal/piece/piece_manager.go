@@ -77,7 +77,7 @@ func (m *PieceManager) AddBlock(index, offset int, data []byte) {
 
 	if piece.isComplete() {
 		if err := piece.verify(); err != nil {
-			piece.reset(m.torrent)
+			piece.reset()
 		}
 	}
 }

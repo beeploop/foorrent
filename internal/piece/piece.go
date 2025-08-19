@@ -10,14 +10,7 @@ import (
 	"github.com/beeploop/foorrent/internal/metadata"
 )
 
-type State int
-
 const (
-	Needed State = iota
-	Requested
-	InProgress
-	Done
-
 	MAX_BLOCK_SIZE = 16 * 1024 // 16KB
 )
 
@@ -31,7 +24,6 @@ type Piece struct {
 	Index  int
 	Length int
 	Hash   [20]byte
-	State  State
 	Data   []byte
 	Blocks []bool
 }
@@ -60,7 +52,6 @@ func initializePieces(torrent metadata.Torrent) ([]Piece, error) {
 			Index:  i,
 			Length: length,
 			Hash:   hash,
-			State:  Needed,
 			Data:   make([]byte, length),
 			Blocks: make([]bool, numOfBlocks),
 		})
@@ -82,26 +73,7 @@ func (p *Piece) isComplete() bool {
 	return !slices.Contains(p.Blocks, false)
 }
 
-func (p *Piece) reset(torrent metadata.Torrent) error {
-	hashes, err := torrent.PieceHashes()
-	if err != nil {
-		return err
-	}
-
-	length := torrent.Info.PieceLength
-
-	// Last piece could be shorter than piece length, perform a double check
-	if p.Index == len(hashes)-1 {
-		remainder := torrent.TotalSize() % torrent.Info.PieceLength
-		if remainder != 0 {
-			length = remainder
-		}
-	}
-
-	numOfBlocks := int(math.Ceil(float64(length) / float64(MAX_BLOCK_SIZE)))
-
-	p.Data = make([]byte, length)
-	p.Blocks = make([]bool, numOfBlocks)
-
-	return nil
+func (p *Piece) reset() {
+	p.Data = make([]byte, len(p.Data))
+	p.Blocks = make([]bool, len(p.Blocks))
 }
