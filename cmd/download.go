@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/beeploop/foorrent/internal/metadata"
 	"github.com/beeploop/foorrent/internal/peer"
@@ -83,7 +84,18 @@ var downloadCmd = &cobra.Command{
 		quitChan := make(chan os.Signal, 1)
 		signal.Notify(quitChan, os.Interrupt, syscall.SIGTERM|syscall.SIGKILL)
 		fmt.Println("Running... Press CTRL+C to quit")
+
+		ticker := time.NewTicker(time.Second * 1)
+		go func() {
+			for {
+				<-ticker.C
+				downloaded, total := manager.Downloaded()
+				fmt.Printf("[ Downloaded Pieces %d/%d ]\n", downloaded, total)
+			}
+		}()
+
 		<-quitChan
+		ticker.Stop()
 
 		fmt.Println("Gracefully shutting down...")
 	},

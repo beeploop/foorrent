@@ -3,7 +3,6 @@ package peer
 import (
 	"context"
 	"encoding/binary"
-	"fmt"
 	"log"
 	"time"
 
@@ -19,10 +18,10 @@ type Session struct {
 	Interested bool
 	BitField   bitfield.BitField
 	Client     *client
-	Manager    piece.Manager
+	Manager    *piece.PieceManager
 }
 
-func New(peerID [20]byte, peer tracker.Peer, torrent metadata.Torrent, pm piece.Manager) (*Session, error) {
+func New(peerID [20]byte, peer tracker.Peer, torrent metadata.Torrent, pm *piece.PieceManager) (*Session, error) {
 	hashes, err := torrent.PieceHashes()
 	if err != nil {
 		return nil, err
@@ -60,7 +59,7 @@ func (s *Session) Start(ctx context.Context) {
 	defer s.Close()
 
 	if err := s.SendInterested(); err != nil {
-		fmt.Println("failed to send interested message")
+		log.Println("failed to send interested message")
 		return
 	}
 
@@ -70,7 +69,6 @@ func (s *Session) Start(ctx context.Context) {
 			return
 		case <-ticker.C:
 			if err := s.SendKeepAlive(); err != nil {
-				fmt.Println("error sending keep-alive: ", err.Error())
 			}
 		default:
 			msg, err := message.Read(s.Client.conn)
@@ -80,30 +78,24 @@ func (s *Session) Start(ctx context.Context) {
 
 			// Received keep-alive message
 			if msg == nil {
-				fmt.Println("received keep-alive")
 				continue
 			}
 
 			switch msg.ID {
 			case message.MsgChoke:
-				fmt.Println("received choke")
 				s.Choked = true
 
 			case message.MsgUnchoke:
-				fmt.Println("received unchoke")
 				s.Choked = false
 
 			case message.MsgHave:
-				fmt.Println("received have")
 				index := binary.BigEndian.Uint32(msg.Payload)
 				s.BitField.SetPiece(int(index))
 
 			case message.MsgBitfield:
-				fmt.Println("received bitfield")
 				s.BitField = msg.Payload
 
 			case message.MsgPiece:
-				fmt.Println("received piece")
 				if len(msg.Payload) <= 8 {
 					log.Println("malformed piece payload")
 					return
@@ -116,19 +108,19 @@ func (s *Session) Start(ctx context.Context) {
 				s.Manager.AddBlock(index, begin, data)
 
 			case message.MsgInterested:
-				fmt.Println("received interested")
+				// TODO: Implement
 
 			case message.MsgUninterested:
-				fmt.Println("received uninterested")
+				// TODO: Implement
 
 			case message.MsgRequest:
-				fmt.Println("received request")
+				// TODO: Implement
 
 			case message.MsgCancel:
-				fmt.Println("received cancel")
+				// TODO: Implement
 
 			default:
-				fmt.Println("received unknown mesage")
+				log.Println("received unknown mesage")
 			}
 
 			if !s.Choked {
@@ -137,7 +129,6 @@ func (s *Session) Start(ctx context.Context) {
 					continue
 				}
 
-				fmt.Printf(">>> Requesting piece=%d, begin=%d\n", block.Index, block.Offset)
 				if err := s.SendRequest(block.Index, block.Offset, block.Length); err != nil {
 					log.Println("error sending request for a block")
 					continue
