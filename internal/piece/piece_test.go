@@ -10,7 +10,7 @@ import (
 func TestPiece(t *testing.T) {
 	t.Run("Test if piece is complete", func(t *testing.T) {
 		p := &Piece{
-			Blocks: make([]bool, 10),
+			Blocks: make([]BlockState, 10),
 		}
 
 		assert.Equal(t, false, p.isComplete())
@@ -21,7 +21,7 @@ func TestPiece(t *testing.T) {
 		numOfBlocks := int(math.Ceil(float64(length) / float64(MAX_BLOCK_SIZE)))
 
 		initialData := make([]byte, length)
-		initialBlocks := make([]bool, numOfBlocks)
+		initialBlocks := make([]BlockState, numOfBlocks)
 
 		p := &Piece{
 			Index:  0,

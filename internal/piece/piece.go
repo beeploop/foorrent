@@ -5,13 +5,19 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"math"
-	"slices"
 
 	"github.com/beeploop/foorrent/internal/metadata"
+	"github.com/beeploop/foorrent/internal/utils"
 )
+
+type BlockState int
 
 const (
 	MAX_BLOCK_SIZE = 16 * 1024 // 16KB
+
+	Missing   BlockState = 0
+	Requested BlockState = 1
+	Done      BlockState = 2
 )
 
 type Block struct {
@@ -25,7 +31,7 @@ type Piece struct {
 	Length int
 	Hash   [20]byte
 	Data   []byte
-	Blocks []bool
+	Blocks []BlockState
 }
 
 func initializePieces(torrent metadata.Torrent) ([]Piece, error) {
@@ -53,7 +59,7 @@ func initializePieces(torrent metadata.Torrent) ([]Piece, error) {
 			Length: length,
 			Hash:   hash,
 			Data:   make([]byte, length),
-			Blocks: make([]bool, numOfBlocks),
+			Blocks: make([]BlockState, numOfBlocks),
 		})
 	}
 
@@ -70,10 +76,12 @@ func (p *Piece) verify() error {
 }
 
 func (p *Piece) isComplete() bool {
-	return !slices.Contains(p.Blocks, false)
+	return utils.Every(p.Blocks, func(state BlockState) bool {
+		return state == Done
+	})
 }
 
 func (p *Piece) reset() {
 	p.Data = make([]byte, len(p.Data))
-	p.Blocks = make([]bool, len(p.Blocks))
+	p.Blocks = make([]BlockState, len(p.Blocks))
 }

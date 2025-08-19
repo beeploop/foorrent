@@ -43,8 +43,8 @@ func (m *PieceManager) NextRequest(peerBitField bitfield.BitField) (Block, bool)
 			continue
 		}
 
-		for blockIndex, have := range piece.Blocks {
-			if !have {
+		for blockIndex, state := range piece.Blocks {
+			if state == Missing {
 				offset := blockIndex * MAX_BLOCK_SIZE
 				length := MAX_BLOCK_SIZE
 
@@ -53,6 +53,7 @@ func (m *PieceManager) NextRequest(peerBitField bitfield.BitField) (Block, bool)
 					length = len(piece.Data) - offset
 				}
 
+				piece.Blocks[blockIndex] = Requested
 				block := Block{Index: index, Offset: offset, Length: length}
 				return block, true
 			}
@@ -70,9 +71,9 @@ func (m *PieceManager) AddBlock(index, offset int, data []byte) {
 	blockIndex := offset / MAX_BLOCK_SIZE
 
 	// Only copy the received block when it is not already received
-	if piece.Blocks[blockIndex] == false {
+	if piece.Blocks[blockIndex] == Missing {
 		copy(piece.Data[offset:], data)
-		piece.Blocks[blockIndex] = true
+		piece.Blocks[blockIndex] = Done
 	}
 
 	if piece.isComplete() {
