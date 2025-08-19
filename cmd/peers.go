@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"crypto/rand"
 	"fmt"
 	"net"
 	"strconv"
 
 	"github.com/beeploop/foorrent/internal/metadata"
+	"github.com/beeploop/foorrent/internal/peer"
 	"github.com/beeploop/foorrent/internal/tracker"
 	"github.com/spf13/cobra"
 )
@@ -29,8 +29,8 @@ var peersCmd = &cobra.Command{
 			panic(err.Error())
 		}
 
-		var peerID [20]byte
-		if _, err := rand.Read(peerID[:]); err != nil {
+		peerID, err := peer.GeneratePeerID()
+		if err != nil {
 			panic(err.Error())
 		}
 
@@ -39,7 +39,7 @@ var peersCmd = &cobra.Command{
 			InfoHash:   infoHash,
 			PeerID:     peerID,
 			Port:       tracker.DEFAULT_PORT,
-			Left:       0,
+			Left:       torrent.TotalSize(),
 			Downloaded: 0,
 			Uploaded:   0,
 		}

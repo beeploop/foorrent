@@ -18,14 +18,14 @@ type Torrent struct {
 
 type TorrentInfo struct {
 	// Size of the file in bytes
-	Length int `bencode:"lenght"`
+	Length int `bencode:"length,omitempty"`
 	// Suggested filename
 	Name string `bencode:"name"`
 	// Number of bytes per piece
 	PieceLength int    `bencode:"piece length"`
 	Pieces      string `bencode:"pieces"`
 	// Files in a multi-file torrent
-	Files []TorrentFile `bencode:"files"`
+	Files []TorrentFile `bencode:"files,omitempty"`
 }
 
 type TorrentFile struct {

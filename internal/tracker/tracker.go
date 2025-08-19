@@ -1,7 +1,6 @@
 package tracker
 
 import (
-	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -43,33 +42,34 @@ func Request(input TrackerInput) (Result, error) {
 		return Result{}, err
 	}
 
-	var content response
-	if err := bencode.Unmarshal(resp, &content); err != nil {
-		return Result{}, err
-	}
-
-	peers, err := parsePeersList([]byte(content.Peers))
+	peers, err := parsePeersList([]byte(resp.Peers))
 	if err != nil {
 		return Result{}, err
 	}
 
 	return Result{
-		Interval: content.Interval,
+		Interval: resp.Interval,
 		Peers:    peers,
 	}, nil
 }
 
-func contactTracker(url string) (io.Reader, error) {
+func contactTracker(url string) (response, error) {
 	client := http.Client{
 		Timeout: time.Second * 30,
 	}
 
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, err
+		return response{}, err
+	}
+	defer resp.Body.Close()
+
+	var content response
+	if err := bencode.Unmarshal(resp.Body, &content); err != nil {
+		return response{}, err
 	}
 
-	return resp.Body, nil
+	return content, nil
 }
 
 func constructURL(input TrackerInput) (string, error) {
