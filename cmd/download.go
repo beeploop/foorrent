@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/beeploop/foorrent/internal/metadata"
 	"github.com/beeploop/foorrent/internal/peer"
@@ -77,7 +80,12 @@ var downloadCmd = &cobra.Command{
 			}(p)
 		}
 
-		select {}
+		quitChan := make(chan os.Signal, 1)
+		signal.Notify(quitChan, os.Interrupt, syscall.SIGTERM|syscall.SIGKILL)
+		fmt.Println("Running... Press CTRL+C to quit")
+		<-quitChan
+
+		fmt.Println("Gracefully shutting down...")
 	},
 }
 
