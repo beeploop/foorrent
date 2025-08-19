@@ -3,17 +3,26 @@ package storage
 import "fmt"
 
 type Storage interface {
-	WriteBlock(index int, offset int, data []byte) error
-	Downloaded() int
+	Init() error
+	WritePiece(index int, length int, data []byte) error
+	Close() error
 }
 
 type MockStorage struct{}
 
-func (s *MockStorage) WriteBlock(index, offset int, data []byte) error {
-	fmt.Printf("written block index: %d, offset: %d\n", index, offset)
+func (s *MockStorage) Init() error {
 	return nil
 }
 
-func (s *MockStorage) Downloaded() int {
-	return 0
+func NewMockStorage() *MockStorage {
+	return &MockStorage{}
+}
+
+func (s *MockStorage) WritePiece(index, length int, data []byte) error {
+	fmt.Printf("written block index: %d, offset: %d\n", index, length)
+	return nil
+}
+
+func (s *MockStorage) Close() error {
+	return nil
 }

@@ -79,5 +79,7 @@ func (m *PieceManager) AddBlock(index, offset int, data []byte) {
 		if err := piece.verify(); err != nil {
 			piece.reset()
 		}
+
+		m.storage.WritePiece(piece.Index, piece.Length, piece.Data)
 	}
 }

@@ -50,9 +50,15 @@ var downloadCmd = &cobra.Command{
 			log.Fatalf("Failed to contact tracker: %s\n", err.Error())
 		}
 
-		storage := &storage.MockStorage{}
+		var writer storage.Storage
+		if torrent.IsSingleFileMode() {
+			writer = storage.NewSingleFileStorage(torrent.Info.Name)
+		} else {
+			writer = storage.NewMultiFileStorage(torrent.Info.Name, torrent.FileMap())
+		}
+		writer.Init()
 
-		manager, err := piece.NewManager(torrent, storage)
+		manager, err := piece.NewManager(torrent, writer)
 		if err != nil {
 			log.Fatalf("Failed to create piece manager: %s\n", err.Error())
 		}
