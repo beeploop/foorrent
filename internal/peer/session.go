@@ -3,6 +3,7 @@ package peer
 import (
 	"context"
 	"encoding/binary"
+	"fmt"
 	"log"
 	"time"
 
@@ -13,15 +14,16 @@ import (
 	"github.com/beeploop/foorrent/internal/tracker"
 )
 
-type Session struct {
-	Choked     bool
-	Interested bool
-	BitField   bitfield.BitField
-	Client     *client
-	Manager    *piece.PieceManager
+type session struct {
+	peer       tracker.Peer
+	choked     bool
+	interested bool
+	bitField   bitfield.BitField
+	client     *client
+	pm         *piece.Manager
 }
 
-func New(peerID [20]byte, peer tracker.Peer, torrent metadata.Torrent, pm *piece.PieceManager) (*Session, error) {
+func newSession(peerID [20]byte, peer tracker.Peer, torrent metadata.Torrent, pm *piece.Manager) (*session, error) {
 	hashes, err := torrent.PieceHashes()
 	if err != nil {
 		return nil, err
@@ -42,18 +44,21 @@ func New(peerID [20]byte, peer tracker.Peer, torrent metadata.Torrent, pm *piece
 		return nil, err
 	}
 
-	session := &Session{
-		Choked:     true,
-		Interested: false,
-		BitField:   make(bitfield.BitField, len(hashes)),
-		Client:     c,
-		Manager:    pm,
+	session := &session{
+		peer:       peer,
+		choked:     true,
+		interested: false,
+		bitField:   make(bitfield.BitField, len(hashes)),
+		client:     c,
+		pm:         pm,
 	}
 
 	return session, nil
 }
 
-func (s *Session) Start(ctx context.Context) {
+func (s *session) Start(ctx context.Context) {
+	fmt.Println("started peer: ", s.peer.String())
+
 	ticker := time.NewTicker(time.Minute * 2)
 	defer ticker.Stop()
 	defer s.Close()
@@ -71,7 +76,7 @@ func (s *Session) Start(ctx context.Context) {
 			if err := s.SendKeepAlive(); err != nil {
 			}
 		default:
-			msg, err := message.Read(s.Client.conn)
+			msg, err := message.Read(s.client.conn)
 			if err != nil {
 				return
 			}
@@ -83,17 +88,17 @@ func (s *Session) Start(ctx context.Context) {
 
 			switch msg.ID {
 			case message.MsgChoke:
-				s.Choked = true
+				s.choked = true
 
 			case message.MsgUnchoke:
-				s.Choked = false
+				s.choked = false
 
 			case message.MsgHave:
 				index := binary.BigEndian.Uint32(msg.Payload)
-				s.BitField.SetPiece(int(index))
+				s.bitField.SetPiece(int(index))
 
 			case message.MsgBitfield:
-				s.BitField = msg.Payload
+				s.bitField = msg.Payload
 
 			case message.MsgPiece:
 				if len(msg.Payload) <= 8 {
@@ -105,7 +110,7 @@ func (s *Session) Start(ctx context.Context) {
 				begin := int(binary.BigEndian.Uint32(msg.Payload[4:8]))
 				data := msg.Payload[8:]
 
-				s.Manager.AddBlock(index, begin, data)
+				s.pm.AddBlock(index, begin, data)
 
 			case message.MsgInterested:
 				// TODO: Implement
@@ -123,8 +128,8 @@ func (s *Session) Start(ctx context.Context) {
 				log.Println("received unknown mesage")
 			}
 
-			if !s.Choked {
-				block, ok := s.Manager.NextRequest(s.BitField)
+			if !s.choked {
+				block, ok := s.pm.NextRequest(s.bitField)
 				if !ok {
 					continue
 				}
@@ -138,18 +143,18 @@ func (s *Session) Start(ctx context.Context) {
 	}
 }
 
-func (s *Session) Close() {
-	s.Client.close()
+func (s *session) Close() {
+	s.client.close()
 }
 
-func (s *Session) SendKeepAlive() error {
-	if _, err := s.Client.conn.Write([]byte{0, 0, 0, 0}); err != nil {
+func (s *session) SendKeepAlive() error {
+	if _, err := s.client.conn.Write([]byte{0, 0, 0, 0}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Session) SendRequest(index, begin, length int) error {
+func (s *session) SendRequest(index, begin, length int) error {
 	payload := make([]byte, 12)
 	binary.BigEndian.PutUint32(payload[0:4], uint32(index))
 	binary.BigEndian.PutUint32(payload[4:8], uint32(begin))
@@ -159,47 +164,47 @@ func (s *Session) SendRequest(index, begin, length int) error {
 		ID:      message.MsgRequest,
 		Payload: payload,
 	}
-	if _, err := s.Client.conn.Write(msg.Serialize()); err != nil {
+	if _, err := s.client.conn.Write(msg.Serialize()); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Session) SendInterested() error {
+func (s *session) SendInterested() error {
 	msg := &message.Message{ID: message.MsgInterested}
-	if _, err := s.Client.conn.Write(msg.Serialize()); err != nil {
+	if _, err := s.client.conn.Write(msg.Serialize()); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Session) SendUninterested() error {
+func (s *session) SendUninterested() error {
 	msg := &message.Message{ID: message.MsgUninterested}
-	if _, err := s.Client.conn.Write(msg.Serialize()); err != nil {
+	if _, err := s.client.conn.Write(msg.Serialize()); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Session) SendChoke() error {
+func (s *session) SendChoke() error {
 	msg := &message.Message{ID: message.MsgChoke}
-	if _, err := s.Client.conn.Write(msg.Serialize()); err != nil {
+	if _, err := s.client.conn.Write(msg.Serialize()); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Session) SendUnchoke() error {
+func (s *session) SendUnchoke() error {
 	msg := &message.Message{ID: message.MsgUnchoke}
-	if _, err := s.Client.conn.Write(msg.Serialize()); err != nil {
+	if _, err := s.client.conn.Write(msg.Serialize()); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Session) SendHave(index int) error {
+func (s *session) SendHave(index int) error {
 	msg := &message.Message{ID: message.MsgHave}
-	if _, err := s.Client.conn.Write(msg.Serialize()); err != nil {
+	if _, err := s.client.conn.Write(msg.Serialize()); err != nil {
 		return err
 	}
 	return nil

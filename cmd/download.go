@@ -62,24 +62,16 @@ var downloadCmd = &cobra.Command{
 		}
 		writer.Init()
 
-		manager, err := piece.NewManager(torrent, writer)
+		pieceManager, err := piece.NewManager(torrent, writer)
 		if err != nil {
 			log.Fatalf("Failed to create piece manager: %s\n", err.Error())
 		}
 
-		for _, p := range response.Peers {
-			go func(p tracker.Peer) {
-				session, err := peer.New(peerID, p, torrent, manager)
-				if err != nil {
-					return
-				}
+		peerManager := peer.NewManager(torrent, peerID, response.Peers, pieceManager)
 
-				ctx, cancel := context.WithCancel(context.Background())
-				defer cancel()
-
-				session.Start(ctx)
-			}(p)
-		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		peerManager.Start(ctx)
 
 		quitChan := make(chan os.Signal, 1)
 		signal.Notify(quitChan, os.Interrupt, syscall.SIGTERM|syscall.SIGKILL)
@@ -89,8 +81,19 @@ var downloadCmd = &cobra.Command{
 		go func() {
 			for {
 				<-ticker.C
-				downloaded, total := manager.Downloaded()
-				fmt.Printf("[ Downloaded Pieces %d/%d ]\n", downloaded, total)
+				downloaded, total := pieceManager.Downloaded()
+				peers, totalPeers := peerManager.ActivePeers()
+				missingBlk, requestedBlk, doneBlk := pieceManager.BlockStats()
+				log.Printf(
+					"[ Peers %d/%d ] [ Pieces %d/%d ] [ Block (missing - requested - done) %d - %d - %d ]\n",
+					peers,
+					totalPeers,
+					downloaded,
+					total,
+					missingBlk,
+					requestedBlk,
+					doneBlk,
+				)
 			}
 		}()
 

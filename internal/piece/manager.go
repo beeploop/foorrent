@@ -8,7 +8,7 @@ import (
 	"github.com/beeploop/foorrent/internal/storage"
 )
 
-type PieceManager struct {
+type Manager struct {
 	mu         sync.Mutex
 	torrent    metadata.Torrent
 	pieces     []Piece
@@ -16,13 +16,13 @@ type PieceManager struct {
 	downloaded int
 }
 
-func NewManager(torrent metadata.Torrent, storage storage.Storage) (*PieceManager, error) {
+func NewManager(torrent metadata.Torrent, storage storage.Storage) (*Manager, error) {
 	pieces, err := initializePieces(torrent)
 	if err != nil {
 		return nil, err
 	}
 
-	m := &PieceManager{
+	m := &Manager{
 		torrent:    torrent,
 		pieces:     pieces,
 		storage:    storage,
@@ -32,7 +32,7 @@ func NewManager(torrent metadata.Torrent, storage storage.Storage) (*PieceManage
 }
 
 // Returns block, ok (indicating if has block to download)
-func (m *PieceManager) NextRequest(peerBitField bitfield.BitField) (Block, bool) {
+func (m *Manager) NextRequest(peerBitField bitfield.BitField) (Block, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -65,7 +65,7 @@ func (m *PieceManager) NextRequest(peerBitField bitfield.BitField) (Block, bool)
 	return Block{}, false
 }
 
-func (m *PieceManager) AddBlock(index, offset int, data []byte) {
+func (m *Manager) AddBlock(index, offset int, data []byte) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -90,6 +90,31 @@ func (m *PieceManager) AddBlock(index, offset int, data []byte) {
 }
 
 // Returns number of downloaded pieces and total pieces
-func (m *PieceManager) Downloaded() (int, int) {
+func (m *Manager) Downloaded() (int, int) {
 	return m.downloaded, len(m.pieces)
+}
+
+// Returns number of blocks missing, requested, done
+func (m *Manager) BlockStats() (int, int, int) {
+	requestedCounter := 0
+	missingCounter := 0
+	doneCounter := 0
+
+	for _, piece := range m.pieces {
+		for _, block := range piece.Blocks {
+			if block == Requested {
+				requestedCounter++
+			}
+
+			if block == Missing {
+				missingCounter++
+			}
+
+			if block == Done {
+				missingCounter++
+			}
+		}
+	}
+
+	return missingCounter, requestedCounter, doneCounter
 }
