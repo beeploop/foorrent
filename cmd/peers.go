@@ -44,13 +44,20 @@ var peersCmd = &cobra.Command{
 			Uploaded:   0,
 		}
 
+		client, err := tracker.TrackerFactory(input)
+		if err != nil {
+			panic(err.Error())
+		}
+
 		fmt.Println("requesting data from tracker...")
-		result, err := tracker.Request(input)
+		result, err := client.Request(input)
 		if err != nil {
 			panic(err.Error())
 		}
 
 		fmt.Println("Interval: ", result.Interval)
+		fmt.Println("Leechers: ", result.Leechers)
+		fmt.Println("Seeders: ", result.Seeders)
 		fmt.Println("Peers:")
 		for _, peer := range result.Peers {
 			fmt.Printf("\t - %s\n", net.JoinHostPort(peer.IP.String(), strconv.Itoa(int(peer.Port))))

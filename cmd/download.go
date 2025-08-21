@@ -41,7 +41,7 @@ var downloadCmd = &cobra.Command{
 			log.Fatalf("Failed to get info hash: %s\n", err.Error())
 		}
 
-		response, err := tracker.Request(tracker.TrackerInput{
+		input := tracker.TrackerInput{
 			Announce:   torrent.Announce,
 			InfoHash:   infoHash,
 			PeerID:     peerID,
@@ -49,7 +49,14 @@ var downloadCmd = &cobra.Command{
 			Left:       torrent.TotalSize(),
 			Downloaded: 0,
 			Uploaded:   0,
-		})
+		}
+
+		client, err := tracker.TrackerFactory(input)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		response, err := client.Request(input)
 		if err != nil {
 			log.Fatalf("Failed to contact tracker: %s\n", err.Error())
 		}
