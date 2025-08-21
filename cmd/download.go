@@ -24,8 +24,6 @@ var downloadCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		file, _ := cmd.Flags().GetString("file")
 
-		fmt.Println("called downloaded on file: ", file)
-
 		torrent, err := metadata.Read(file)
 		if err != nil {
 			log.Fatalf("Reading torrent failed: %s\n", err.Error())

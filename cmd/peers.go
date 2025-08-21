@@ -18,7 +18,6 @@ var peersCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		file, _ := cmd.Flags().GetString("file")
 
-		fmt.Println("reading .torrent file")
 		torrent, err := metadata.Read(file)
 		if err != nil {
 			panic(err.Error())
@@ -49,7 +48,6 @@ var peersCmd = &cobra.Command{
 			panic(err.Error())
 		}
 
-		fmt.Println("requesting data from tracker...")
 		result, err := client.Request(input)
 		if err != nil {
 			panic(err.Error())

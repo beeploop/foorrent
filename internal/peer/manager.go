@@ -34,7 +34,6 @@ func (m *Manager) Start(ctx context.Context) {
 		go func(peer tracker.Peer) {
 			session, err := newSession(m.peerID, peer, m.torrent, m.pm)
 			if err != nil {
-				fmt.Printf("failed client on peer: %s, error: %s\n", peer.String(), err.Error())
 				return
 			}
 

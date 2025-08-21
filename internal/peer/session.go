@@ -57,8 +57,6 @@ func newSession(peerID [20]byte, peer tracker.Peer, torrent metadata.Torrent, pm
 }
 
 func (s *session) Start(ctx context.Context) {
-	fmt.Println("started peer: ", s.peer.String())
-
 	ticker := time.NewTicker(time.Minute * 2)
 	defer ticker.Stop()
 	defer s.Close()
