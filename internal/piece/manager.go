@@ -73,7 +73,7 @@ func (m *Manager) AddBlock(index, offset int, data []byte) {
 	blockIndex := offset / MAX_BLOCK_SIZE
 
 	// Only copy the received block when it is not already received
-	if piece.Blocks[blockIndex] == Missing {
+	if piece.Blocks[blockIndex] != Done {
 		copy(piece.Data[offset:], data)
 		piece.Blocks[blockIndex] = Done
 	}
