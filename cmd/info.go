@@ -56,6 +56,8 @@ var infoCmd = &cobra.Command{
 }
 
 func init() {
+	infoCmd.PersistentFlags().String("file", "", "input torrent file")
+	infoCmd.MarkPersistentFlagRequired("file")
 	infoCmd.Flags().Bool("with_pieces", false, "include the pieces in the printed data")
 	infoCmd.Flags().Bool("human_readable", false, "format file size/length into human-readable string")
 

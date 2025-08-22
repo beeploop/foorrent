@@ -110,5 +110,8 @@ var downloadCmd = &cobra.Command{
 }
 
 func init() {
+	downloadCmd.PersistentFlags().String("file", "", "input torrent file")
+	downloadCmd.MarkPersistentFlagRequired("file")
+
 	rootCmd.AddCommand(downloadCmd)
 }

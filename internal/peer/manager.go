@@ -2,7 +2,6 @@ package peer
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/beeploop/foorrent/internal/metadata"

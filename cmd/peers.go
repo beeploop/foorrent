@@ -64,5 +64,8 @@ var peersCmd = &cobra.Command{
 }
 
 func init() {
+	peersCmd.PersistentFlags().String("file", "", "input torrent file")
+	peersCmd.MarkPersistentFlagRequired("file")
+
 	rootCmd.AddCommand(peersCmd)
 }

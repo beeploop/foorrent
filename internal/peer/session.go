@@ -3,7 +3,6 @@ package peer
 import (
 	"context"
 	"encoding/binary"
-	"fmt"
 	"log"
 	"time"
 

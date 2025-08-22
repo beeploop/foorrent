@@ -20,6 +20,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().String("file", "", "input torrent file")
-	rootCmd.MarkPersistentFlagRequired("file")
+	//
 }
