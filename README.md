@@ -7,6 +7,7 @@ A basic CLI BitTorrent client
 - Handle DHT and Peer Exchange (PEX)
 - Better UI
 - Assign a name for the output file/directory on download
+- Add support for magnet links
 
 ## Known Issues
 - Too slow and suspiciously doesn't connect to most peers
