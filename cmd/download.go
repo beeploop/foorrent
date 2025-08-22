@@ -88,16 +88,12 @@ var downloadCmd = &cobra.Command{
 				<-ticker.C
 				downloaded, total := pieceManager.Downloaded()
 				peers, totalPeers := peerManager.ActivePeers()
-				missingBlk, requestedBlk, doneBlk := pieceManager.BlockStats()
 				log.Printf(
-					"[ Peers %d/%d ] [ Pieces %d/%d ] [ Block (missing - requested - done) %d - %d - %d ]\n",
+					"[ Peers %d/%d ] [ Pieces %d/%d ]\n",
 					peers,
 					totalPeers,
 					downloaded,
 					total,
-					missingBlk,
-					requestedBlk,
-					doneBlk,
 				)
 			}
 		}()

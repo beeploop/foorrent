@@ -93,28 +93,3 @@ func (m *Manager) AddBlock(index, offset int, data []byte) {
 func (m *Manager) Downloaded() (int, int) {
 	return m.downloaded, len(m.pieces)
 }
-
-// Returns number of blocks missing, requested, done
-func (m *Manager) BlockStats() (int, int, int) {
-	requestedCounter := 0
-	missingCounter := 0
-	doneCounter := 0
-
-	for _, piece := range m.pieces {
-		for _, block := range piece.Blocks {
-			if block == Requested {
-				requestedCounter++
-			}
-
-			if block == Missing {
-				missingCounter++
-			}
-
-			if block == Done {
-				missingCounter++
-			}
-		}
-	}
-
-	return missingCounter, requestedCounter, doneCounter
-}
