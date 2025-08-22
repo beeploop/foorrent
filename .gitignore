@@ -2,3 +2,4 @@ bin
 *.torrent
 output
 test_files
+*.iso

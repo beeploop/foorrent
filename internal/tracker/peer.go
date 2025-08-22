@@ -1,12 +1,22 @@
-package peers
+package tracker
 
 import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"strconv"
 )
 
-func PeersFromBytes(peersBytes []byte) ([]Peer, error) {
+type Peer struct {
+	IP   net.IP
+	Port uint16
+}
+
+func (p *Peer) String() string {
+	return net.JoinHostPort(p.IP.String(), strconv.Itoa(int(p.Port)))
+}
+
+func parsePeersList(peersBytes []byte) ([]Peer, error) {
 	peerSize := 6 // 6 bytes per peer | 4 for IP, 2 for port
 	numOfPeers := len(peersBytes) / peerSize
 
@@ -16,7 +26,7 @@ func PeersFromBytes(peersBytes []byte) ([]Peer, error) {
 	}
 
 	peers := make([]Peer, numOfPeers)
-	for i := 0; i < numOfPeers; i++ {
+	for i := range numOfPeers {
 		offset := i * peerSize
 
 		peer := Peer{
