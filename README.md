@@ -1,6 +1,6 @@
 ## Foorrent
 
-A basic CLI BitTorrent client
+A simple CLI-based BitTorrent client
 
 ## TODO
  - [ ] Handle multiple trackers
@@ -13,3 +13,12 @@ A basic CLI BitTorrent client
 
 ## Known Issues
 - Too slow and suspiciously doesn't connect to most peers
+
+## Installation
+
+### Requirements
+ - Must have at least Go 1.24
+
+### Steps
+
+ - If you have `make` installed, you can run `make` command to build. Otherwise, run `go build main.go`. You can provide a filename and directory by passing it to `go build` command with `-o` flag.
