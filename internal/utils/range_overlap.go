@@ -5,6 +5,6 @@ type Range struct {
 	End   int64
 }
 
-func IsOverlapping(range1, range2 Range) bool {
-	return !(range1.End < range2.Start || range2.End < range1.Start)
+func IsOverlapping(r1, r2 Range) bool {
+	return !(r1.End <= r2.Start || r2.End <= r1.Start)
 }

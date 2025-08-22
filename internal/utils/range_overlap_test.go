@@ -16,12 +16,12 @@ func TestRangeOverlap(t *testing.T) {
 			{
 				range1:   Range{1, 2},
 				range2:   Range{2, 3},
-				expected: true,
+				expected: false,
 			},
 			{
 				range1:   Range{4, 6},
 				range2:   Range{2, 4},
-				expected: true,
+				expected: false,
 			},
 			{
 				range1:   Range{1, 5},
@@ -37,6 +37,16 @@ func TestRangeOverlap(t *testing.T) {
 				range1:   Range{2, 3},
 				range2:   Range{4, 5},
 				expected: false,
+			},
+			{
+				range1:   Range{0, 1000},
+				range2:   Range{1000, 2000},
+				expected: false,
+			},
+			{
+				range1:   Range{0, 1000},
+				range2:   Range{900, 2000},
+				expected: true,
 			},
 		}
 

@@ -51,8 +51,24 @@ func (s *MultiFileStorage) WritePiece(index, length int, data []byte) error {
 		return err
 	}
 
-	// TODO: Write the piece to the target files
-	// a piece can span multiple files, handle it
+	for _, idx := range targetFileIndexes {
+		f := s.openedFiles[idx]
+		fileEntry := s.filemap[idx]
+
+		fileStart := fileEntry.Begin()
+		fileEnd := fileEntry.End()
+
+		writeStart := max(pieceStart, fileStart)
+		writeEnd := min(pieceEnd, fileEnd)
+
+		fileOffset := writeStart - fileStart  // where in the file to write
+		dataOffset := writeStart - pieceStart // where in the piece to read from
+		chunkLength := writeEnd - writeStart
+
+		if _, err := f.WriteAt(data[dataOffset:dataOffset+chunkLength], fileOffset); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
