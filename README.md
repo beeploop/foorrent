@@ -8,6 +8,7 @@ A basic CLI BitTorrent client
 - Better UI
 - Assign a name for the output file/directory on download
 - Add support for magnet links
+- Add support for seeding
 
 ## Known Issues
 - Too slow and suspiciously doesn't connect to most peers
