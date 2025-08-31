@@ -6,14 +6,14 @@ import (
 	"github.com/beeploop/foorrent/internal/bitfield"
 	"github.com/beeploop/foorrent/internal/metadata"
 	"github.com/beeploop/foorrent/internal/storage"
+	"github.com/beeploop/foorrent/internal/utils"
 )
 
 type Manager struct {
-	mu         sync.Mutex
-	torrent    metadata.Torrent
-	pieces     []Piece
-	storage    storage.Storage
-	downloaded int
+	mu      sync.Mutex
+	torrent metadata.Torrent
+	pieces  []Piece
+	storage storage.Storage
 }
 
 func NewManager(torrent metadata.Torrent, storage storage.Storage) (*Manager, error) {
@@ -23,10 +23,9 @@ func NewManager(torrent metadata.Torrent, storage storage.Storage) (*Manager, er
 	}
 
 	m := &Manager{
-		torrent:    torrent,
-		pieces:     pieces,
-		storage:    storage,
-		downloaded: 0,
+		torrent: torrent,
+		pieces:  pieces,
+		storage: storage,
 	}
 	return m, nil
 }
@@ -79,17 +78,31 @@ func (m *Manager) AddBlock(index, offset int, data []byte) {
 	}
 
 	if piece.isComplete() {
-		m.downloaded++
-
 		if err := piece.verify(); err != nil {
-			piece.reset()
+			piece.resetData()
 		}
 
-		m.storage.WritePiece(piece.Index, piece.Length, piece.Data)
+		if err := m.storage.WritePiece(piece.Index, piece.Length, piece.Data); err != nil {
+			piece.resetData()
+		}
+		piece.finalizeAndFree()
 	}
 }
 
 // Returns number of downloaded pieces and total pieces
 func (m *Manager) Downloaded() (int, int) {
-	return m.downloaded, len(m.pieces)
+	counter := 0
+	for _, p := range m.pieces {
+		if p.done() {
+			counter++
+		}
+	}
+
+	return counter, len(m.pieces)
+}
+
+func (m *Manager) Done() bool {
+	return utils.Every(m.pieces, func(p Piece) bool {
+		return p.done()
+	})
 }

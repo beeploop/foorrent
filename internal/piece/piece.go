@@ -32,6 +32,7 @@ type Piece struct {
 	Hash   [20]byte
 	Data   []byte
 	Blocks []BlockState
+	Done   bool
 }
 
 func initializePieces(torrent metadata.Torrent) ([]Piece, error) {
@@ -60,6 +61,7 @@ func initializePieces(torrent metadata.Torrent) ([]Piece, error) {
 			Hash:   hash,
 			Data:   make([]byte, length),
 			Blocks: make([]BlockState, numOfBlocks),
+			Done:   false,
 		})
 	}
 
@@ -81,7 +83,18 @@ func (p *Piece) isComplete() bool {
 	})
 }
 
-func (p *Piece) reset() {
+// Reset the data of Data field and resetData the blocks to missing state
+func (p *Piece) resetData() {
 	p.Data = make([]byte, len(p.Data))
 	p.Blocks = make([]BlockState, len(p.Blocks))
+}
+
+// Free up the data of the piece to save memory
+func (p *Piece) finalizeAndFree() {
+	p.Done = true
+	p.Data = nil
+}
+
+func (p *Piece) done() bool {
+	return p.Done
 }

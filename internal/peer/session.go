@@ -55,7 +55,7 @@ func newSession(peerID [20]byte, peer tracker.Peer, torrent metadata.Torrent, pm
 	return session, nil
 }
 
-func (s *session) Start(ctx context.Context) {
+func (s *session) start(ctx context.Context) {
 	ticker := time.NewTicker(time.Minute * 2)
 	defer ticker.Stop()
 	defer s.Close()

@@ -30,7 +30,7 @@ func TestPiece(t *testing.T) {
 			Blocks: initialBlocks,
 		}
 
-		p.reset()
+		p.resetData()
 
 		assert.EqualValues(t, length, len(p.Data))
 		assert.EqualValues(t, numOfBlocks, len(p.Blocks))

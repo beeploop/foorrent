@@ -95,6 +95,10 @@ var downloadCmd = &cobra.Command{
 					downloaded,
 					total,
 				)
+
+				if pieceManager.Done() {
+					log.Printf("DOWNLOAD COMPLETE...")
+				}
 			}
 		}()
 
