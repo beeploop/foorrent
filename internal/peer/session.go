@@ -118,15 +118,19 @@ func (s *session) start(ctx context.Context) {
 				}
 
 			case message.MsgInterested:
+				log.Println("received interested message")
 				// TODO: Implement
 
 			case message.MsgUninterested:
+				log.Println("received uninterested message")
 				// TODO: Implement
 
 			case message.MsgRequest:
+				log.Println("received a request message")
 				// TODO: Implement
 
 			case message.MsgCancel:
+				log.Println("received a cancel message")
 				// TODO: Implement
 
 			default:

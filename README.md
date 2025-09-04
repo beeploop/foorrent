@@ -26,6 +26,7 @@ To limit the scope of this project and realistically create an output in a reaso
 ## Known issues worth investigating
  - Doesn't/fails to connect to most of the peers returned by the tracker.
  - Download speed is slow.
+ - Not well tested, especially concurrent downloading and communication with peers
 
 ## Installation
 
