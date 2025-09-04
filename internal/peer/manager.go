@@ -38,7 +38,7 @@ func (m *Manager) Start(ctx context.Context) {
 
 			m.mu.Lock()
 			m.sessions = append(m.sessions, session)
-			m.sessions[len(m.sessions)-1].Start(ctx)
+			m.sessions[len(m.sessions)-1].start(ctx)
 			m.mu.Unlock()
 		}(peer)
 	}
