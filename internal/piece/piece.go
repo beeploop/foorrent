@@ -35,13 +35,13 @@ type Piece struct {
 	Done   bool
 }
 
-func initializePieces(torrent metadata.Torrent) ([]Piece, error) {
+func initializePieces(torrent metadata.Torrent) ([]*Piece, error) {
 	hashes, err := torrent.PieceHashes()
 	if err != nil {
 		return nil, err
 	}
 
-	pieces := make([]Piece, 0)
+	pieces := make([]*Piece, 0)
 	for i, hash := range hashes {
 		length := torrent.Info.PieceLength
 
@@ -55,7 +55,7 @@ func initializePieces(torrent metadata.Torrent) ([]Piece, error) {
 
 		numOfBlocks := int(math.Ceil(float64(length) / float64(MAX_BLOCK_SIZE)))
 
-		pieces = append(pieces, Piece{
+		pieces = append(pieces, &Piece{
 			Index:  i,
 			Length: length,
 			Hash:   hash,

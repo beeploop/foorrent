@@ -107,7 +107,15 @@ func (s *session) start(ctx context.Context) {
 				begin := int(binary.BigEndian.Uint32(msg.Payload[4:8]))
 				data := msg.Payload[8:]
 
-				s.pm.AddBlock(index, begin, data)
+				complete := s.pm.AddBlock(index, begin, data)
+				if complete {
+					if err := s.SendHave(index); err != nil {
+						log.Println("failed to send have message")
+						continue
+					} else {
+						log.Println("sent have message")
+					}
+				}
 
 			case message.MsgInterested:
 				// TODO: Implement

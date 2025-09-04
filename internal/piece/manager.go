@@ -12,7 +12,7 @@ import (
 type Manager struct {
 	mu      sync.Mutex
 	torrent metadata.Torrent
-	pieces  []Piece
+	pieces  []*Piece
 	storage storage.Storage
 }
 
@@ -64,7 +64,8 @@ func (m *Manager) NextRequest(peerBitField bitfield.BitField) (Block, bool) {
 	return Block{}, false
 }
 
-func (m *Manager) AddBlock(index, offset int, data []byte) {
+// Returns a boolean of whether the piece is complete or not
+func (m *Manager) AddBlock(index, offset int, data []byte) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -86,7 +87,11 @@ func (m *Manager) AddBlock(index, offset int, data []byte) {
 			piece.resetData()
 		}
 		piece.finalizeAndFree()
+
+		return true
 	}
+
+	return false
 }
 
 // Returns number of downloaded pieces and total pieces
@@ -102,7 +107,7 @@ func (m *Manager) Downloaded() (int, int) {
 }
 
 func (m *Manager) Done() bool {
-	return utils.Every(m.pieces, func(p Piece) bool {
+	return utils.Every(m.pieces, func(p *Piece) bool {
 		return p.done()
 	})
 }
