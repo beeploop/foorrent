@@ -23,11 +23,6 @@ type session struct {
 }
 
 func newSession(peerID [20]byte, peer tracker.Peer, torrent metadata.Torrent, pm *piece.Manager) (*session, error) {
-	hashes, err := torrent.PieceHashes()
-	if err != nil {
-		return nil, err
-	}
-
 	infoHash, err := torrent.InfoHash()
 	if err != nil {
 		return nil, err
@@ -47,7 +42,7 @@ func newSession(peerID [20]byte, peer tracker.Peer, torrent metadata.Torrent, pm
 		peer:       peer,
 		choked:     true,
 		interested: false,
-		bitField:   make(bitfield.BitField, len(hashes)),
+		bitField:   nil,
 		client:     c,
 		pm:         pm,
 	}
@@ -63,6 +58,8 @@ func (s *session) start(ctx context.Context) {
 	if err := s.SendInterested(); err != nil {
 		log.Println("failed to send interested message")
 		return
+	} else {
+		log.Println("sent interested message")
 	}
 
 	for {
@@ -80,24 +77,35 @@ func (s *session) start(ctx context.Context) {
 
 			// Received keep-alive message
 			if msg == nil {
+				log.Println("received a keep-alive message")
 				continue
 			}
 
 			switch msg.ID {
 			case message.MsgChoke:
+				log.Println("received choke message")
+
 				s.choked = true
 
 			case message.MsgUnchoke:
+				log.Println("received unchoke message")
+
 				s.choked = false
 
 			case message.MsgHave:
+				log.Println("received have message")
+
 				index := binary.BigEndian.Uint32(msg.Payload)
 				s.bitField.SetPiece(int(index))
 
 			case message.MsgBitfield:
+				log.Println("received bitfield message")
+
 				s.bitField = msg.Payload
 
 			case message.MsgPiece:
+				log.Println("received piece message")
+
 				if len(msg.Payload) <= 8 {
 					log.Println("malformed piece payload")
 					return
@@ -107,6 +115,7 @@ func (s *session) start(ctx context.Context) {
 				begin := int(binary.BigEndian.Uint32(msg.Payload[4:8]))
 				data := msg.Payload[8:]
 
+				// log.Printf("received piece index=%d begin=%d len=%d\n", index, begin, len(msg.Payload)-8)
 				complete := s.pm.AddBlock(index, begin, data)
 				if complete {
 					if err := s.SendHave(index); err != nil {
@@ -137,15 +146,18 @@ func (s *session) start(ctx context.Context) {
 				log.Println("received unknown mesage")
 			}
 
-			if !s.choked {
+			if !s.choked && s.bitField != nil {
 				block, ok := s.pm.NextRequest(s.bitField)
 				if !ok {
+					log.Println("NextRequest() returned false, no block to download")
 					continue
 				}
 
 				if err := s.SendRequest(block.Index, block.Offset, block.Length); err != nil {
 					log.Println("error sending request for a block")
 					continue
+				} else {
+					log.Printf("sent request for block index=%d offset=%d length=%d\n", block.Index, block.Offset, block.Length)
 				}
 			}
 		}
@@ -212,7 +224,13 @@ func (s *session) SendUnchoke() error {
 }
 
 func (s *session) SendHave(index int) error {
-	msg := &message.Message{ID: message.MsgHave}
+	payload := make([]byte, 4)
+	binary.BigEndian.PutUint32(payload, uint32(index))
+
+	msg := &message.Message{
+		ID:      message.MsgHave,
+		Payload: payload,
+	}
 	if _, err := s.client.conn.Write(msg.Serialize()); err != nil {
 		return err
 	}
